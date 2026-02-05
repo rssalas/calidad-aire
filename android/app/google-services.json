@@ -1,0 +1,127 @@
+{
+  "project_info": {
+    "project_number": "767874058625",
+    "firebase_url": "https://santa-cruz-iot-air-quality-default-rtdb.firebaseio.com",
+    "project_id": "santa-cruz-iot-air-quality",
+    "storage_bucket": "santa-cruz-iot-air-quality.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:767874058625:android:e4380002663141eaae4080",
+        "android_client_info": {
+          "package_name": "com.example.aplicacion1"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "767874058625-okrl40dq2fc5hvj4lgnlu8sfkva1klgi.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDvR3M0_SOYDZGU3BBEFLE-tYckZGcRGwU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "767874058625-okrl40dq2fc5hvj4lgnlu8sfkva1klgi.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "767874058625-gtd2e88p2ollei6e1te56icjt73r5847.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.aplicacion1"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:767874058625:android:141b3c141bf2bc75ae4080",
+        "android_client_info": {
+          "package_name": "com.example.flutter_application_1"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "767874058625-gfolahc3puskbfdgr9uigueo910t5kh4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.flutter_application_1",
+            "certificate_hash": "3c8d67ed5ae142c8a8e8cccff8ea9aec24d394ae"
+          }
+        },
+        {
+          "client_id": "767874058625-okrl40dq2fc5hvj4lgnlu8sfkva1klgi.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDvR3M0_SOYDZGU3BBEFLE-tYckZGcRGwU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "767874058625-okrl40dq2fc5hvj4lgnlu8sfkva1klgi.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "767874058625-gtd2e88p2ollei6e1te56icjt73r5847.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.aplicacion1"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:767874058625:android:6dc54f4dd69b377aae4080",
+        "android_client_info": {
+          "package_name": "com.example.flutter_application_2"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "767874058625-okrl40dq2fc5hvj4lgnlu8sfkva1klgi.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDvR3M0_SOYDZGU3BBEFLE-tYckZGcRGwU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "767874058625-okrl40dq2fc5hvj4lgnlu8sfkva1klgi.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "767874058625-gtd2e88p2ollei6e1te56icjt73r5847.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.aplicacion1"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
