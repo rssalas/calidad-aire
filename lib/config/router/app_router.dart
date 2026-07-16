@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 
 // GoRouter configuration
 final appRouter = GoRouter(
-  initialLocation: '/',
+  initialLocation: '/splash',
   
   routes: [
     GoRoute(
@@ -16,7 +16,7 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: '/splash',
-      builder: (context, state) => SplahScreen(),
+      builder: (context, state) => SplashScreen(),
     ),
   ],
 );
