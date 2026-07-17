@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       
-      title: 'Monitor de Calidad del Aire',
+      title: 'AirGuard',
       debugShowCheckedModeBanner: false, // Quita la banda de "Debug"
       theme: ThemeData(
         primarySwatch: Colors.blue,
