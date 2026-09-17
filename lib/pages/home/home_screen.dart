@@ -7,6 +7,13 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          context.go('/data');
+        },
+        backgroundColor: Color(0xff2563EB),
+        child: Icon(Icons.data_usage_rounded, color: Colors.white,),
+      ),
       backgroundColor: const Color(0xffF4F8FB),
       body: SafeArea(
         child: Center(
@@ -39,10 +46,10 @@ class HomeScreen extends StatelessWidget {
 
                 const SizedBox(height: 35),
 
-                const Text(
-                  "Buenos días 👋",
-                  style: TextStyle(fontSize: 18, color: Colors.grey),
-                ),
+                // const Text(
+                //   "Buenos días 👋",
+                //   style: TextStyle(fontSize: 18, color: Colors.grey),
+                // ),
 
                 const SizedBox(height: 10),
 
@@ -142,12 +149,6 @@ class HomeScreen extends StatelessWidget {
                 ),
 
                 const SizedBox(height: 40),
-                IconButton.filled(
-                  onPressed: () {
-                    context.go('/data');
-                  },
-                  icon: Icon(Icons.arrow_forward_sharp),
-                ),
 
                 const Text(
                   "Versión 1.0.0",

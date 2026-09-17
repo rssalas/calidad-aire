@@ -17,12 +17,12 @@ class _MultipleSensorDisplayState extends State<MultipleSensorDisplay> {
   double? _pm10;
   double? _pm25;
 
-  final _humedadRef = FirebaseDatabase.instance.ref('dht11/humedad');
-  final _temperaturaRef = FirebaseDatabase.instance.ref('dht11/temperatura');
-  final _coRawRef = FirebaseDatabase.instance.ref('mics4514/co_raw');
-  final _no2RawRef = FirebaseDatabase.instance.ref('mics4514/no2_raw');
-  final _pm10Ref = FirebaseDatabase.instance.ref('sds011/pm10');
-  final _pm25Ref = FirebaseDatabase.instance.ref('sds011/pm25');
+  final _humedadRef = FirebaseDatabase.instance.ref('estado_actual/dht22/humedad');
+  final _temperaturaRef = FirebaseDatabase.instance.ref('estado_actual/dht22/temperatura');
+  final _coRawRef = FirebaseDatabase.instance.ref('estado_actual/mics4514/co_ppm');
+  final _no2RawRef = FirebaseDatabase.instance.ref('estado_actual/mics4514/no2_ppm');
+  final _pm10Ref = FirebaseDatabase.instance.ref('estado_actual/sds011/pm10');
+  final _pm25Ref = FirebaseDatabase.instance.ref('estado_actual/sds011/pm25');
 
   late StreamSubscription<DatabaseEvent> _humedadSubscription;
   late StreamSubscription<DatabaseEvent> _temperaturaSubscription;
@@ -189,127 +189,122 @@ class _MultipleSensorDisplayState extends State<MultipleSensorDisplay> {
     double? value,
     String unit,
     IconData icon,
+    Color color,
   ) {
-    return Card(
-      // Usamos Card para darle un contenedor visualmente agradable
-      elevation: 4.0, // Añade una pequeña sombra
-      margin: const EdgeInsets.symmetric(
-        vertical: 8.0,
-        horizontal: 0.0,
-      ), // Margen entre tarjetas
-      child: Padding(
-        padding: const EdgeInsets.all(16.0), // Espacio dentro de la tarjeta
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              // Usamos un Row para el icono y la etiqueta
-              children: [
-                Icon(
-                  icon,
-                  size: 24.0,
-                  color: Theme.of(context).primaryColor,
-                ), // Icono
-                SizedBox(width: 12.0), // Espacio entre icono y texto
-                Text(
-                  label,
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ],
+    return Container(
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(26),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.5),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: color.withOpacity(.12),
+              borderRadius: BorderRadius.circular(14),
             ),
-            if (value != null)
-              Text(
-                '${value.toStringAsFixed(1)} $unit', // Formatear a un decimal
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.blueGrey[700],
-                ), // Un color un poco más suave
-              )
-            else
-              Text(
-                'Cargando...',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontStyle: FontStyle.italic,
-                  color: Colors.grey[600],
-                ),
+            child: Icon(icon, color: color, size: 24),
+          ),
+
+          const Spacer(),
+
+          Text(label, style: const TextStyle(color: Colors.grey, fontSize: 15)),
+
+          const SizedBox(height: 5),
+
+          if (value != null)
+            RichText(
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: value.toStringAsFixed(1),
+                    style: const TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  TextSpan(
+                    text: " $unit",
+                    style: const TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
+                ],
               ),
-          ],
-        ),
+            )
+          else
+            const Text(
+              "--",
+              style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+            ),
+
+          const SizedBox(height: 15),
+
+          Container(
+            height: 5,
+            decoration: BoxDecoration(
+              color: color.withOpacity(.18),
+              borderRadius: BorderRadius.circular(20),
+            ),
+          ),
+        ],
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      // Permite hacer scroll si la lista de datos es larga
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            // Título con un icono
-            Row(
-              children: [
-                Icon(
-                  Icons.sensors,
-                  size: 30.0,
-                  color: Theme.of(context).primaryColor,
-                ),
-                SizedBox(width: 8.0),
-                Text(
-                  'Datos de Sensores:',
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blueGrey[800],
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 24), // Espacio después del título
-            // Usamos las nuevas tarjetas para cada sensor
-            _buildSensorCard(
-              'Humedad',
-              _humedad,
-              '%',
-              Icons.water_drop_outlined,
-            ), // Icono de gota
-            _buildSensorCard(
-              'Temperatura',
-              _temperatura,
-              '°C',
-              Icons.thermostat_outlined,
-            ), // Icono de termómetro
-            _buildSensorCard(
-              'Monóxido Carbono',
-              _coRaw,
-              'ppm',
-              Icons.cloud_outlined,
-            ), // Icono genérico de aire
-            _buildSensorCard(
-              'Dióxido Nitrógeno',
-              _no2Raw,
-              'ppm',
-              Icons.cloud_outlined,
-            ), // Icono genérico de aire
-            _buildSensorCard(
-              'PM10',
-              _pm10,
-              'µg/m³',
-              Icons.grain,
-            ), // Icono de grano/partícula
-            _buildSensorCard(
-              'PM2.5',
-              _pm25,
-              'µg/m³',
-              Icons.grain,
-            ), // Icono de grano/partícula
-            // Ya no necesitamos los Divider() entre las tarjetas
-          ],
+    return GridView.count(
+      crossAxisCount: 2,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+
+      crossAxisSpacing: 18,
+      mainAxisSpacing: 18,
+
+      childAspectRatio: .80,
+
+      children: [
+        _buildSensorCard(
+          "Temperatura",
+          _temperatura,
+          "°C",
+          Icons.thermostat_rounded,
+          Colors.deepOrange,
         ),
-      ),
+
+        _buildSensorCard(
+          "Humedad",
+          _humedad,
+          "%",
+          Icons.water_drop_rounded,
+          Colors.blue,
+        ),
+
+        _buildSensorCard("CO", _coRaw, "ppm", Icons.air, Colors.red),
+
+        _buildSensorCard(
+          "NO₂",
+          _no2Raw,
+          "ppm",
+          Icons.science,
+          Colors.deepPurple,
+        ),
+
+        _buildSensorCard("PM10", _pm10, "µg/m³", Icons.blur_on, Colors.green),
+
+        _buildSensorCard("PM2.5", _pm25, "µg/m³", Icons.blur_on, Colors.teal),
+      ],
     );
   }
 }
