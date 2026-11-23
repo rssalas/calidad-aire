@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_application_1/config/router/app_router.dart';
 import 'package:flutter_application_1/pages/data/data_screen.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_application_1/services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,6 +18,9 @@ void main() async {
   } catch (e) {
     debugPrint("Firebase ya estaba listo o hubo un error: $e");
   }
+  
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+  await NotificationService().inicializar();
 
   runApp(const MyApp());
 }

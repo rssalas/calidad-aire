@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -7,10 +8,6 @@ import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'export_service.dart';
 
-// IMPORTANTE: la base de datos reservada "(default)" quedo en modo Datastore
-// (incompatible), por eso toda consulta a Firestore en la app debe apuntar
-// explicitamente a la base nombrada "default" (sin parentesis), igual que
-// ya se hace en las Cloud Functions.
 FirebaseFirestore get _db =>
     FirebaseFirestore.instanceFor(app: Firebase.app(), databaseId: 'default');
 
@@ -35,8 +32,7 @@ const Map<VariableSensor, _InfoVariable> _infoVariables = {
   VariableSensor.pm10: _InfoVariable('PM10', 'µg/m³', Color(0xFF0984E3)),
 };
 
-/// Umbrales (advertencia, alarma) por variable — mismos valores usados en
-/// el firmware del ESP32 (UMBRALES) y en la Cloud Function sincronizarYAlertar.
+/// Umbrales (advertencia, alarma) por variable
 const Map<VariableSensor, (double advertencia, double alarma)> _umbrales = {
   VariableSensor.temperatura: (26, 30),
   VariableSensor.humedad: (60, 70),
@@ -130,7 +126,6 @@ class _GraphsScreenState extends State<GraphsScreen> {
 
   // --------------------------------------------------------------------
   // Agrupa una lista de puntos crudos (10 min) en la resolución objetivo.
-  // Si la resolución objetivo YA es 10 minutos, no se agrupa más.
   // --------------------------------------------------------------------
   List<_PuntoGrafica> _agruparPorResolucion(
     List<_PuntoGrafica> crudos,
@@ -184,6 +179,9 @@ class _GraphsScreenState extends State<GraphsScreen> {
           .orderBy('timestamp')
           .get();
 
+      // PROTECCIÓN CRÍTICA: Evita crasheos si el usuario cerró la pantalla
+      if (!mounted) return;
+
       final List<_PuntoGrafica> crudos = [];
       for (final doc in snapshot.docs) {
         final datos = doc.data();
@@ -201,6 +199,7 @@ class _GraphsScreenState extends State<GraphsScreen> {
         _cargando = false;
       });
     } catch (e) {
+      if (!mounted) return; // PROTECCIÓN CRÍTICA
       setState(() {
         _error = 'No se pudieron cargar los datos. Verifique su conexión.';
         _cargando = false;
@@ -237,10 +236,8 @@ class _GraphsScreenState extends State<GraphsScreen> {
       saveText: 'Exportar',
     );
 
-    // El usuario canceló el selector: no hacer nada
     if (rangoElegido == null) return;
 
-    // El selector solo da fechas (sin hora); se completa el día entero
     final inicio = DateTime(
       rangoElegido.start.year,
       rangoElegido.start.month,
@@ -327,22 +324,36 @@ class _GraphsScreenState extends State<GraphsScreen> {
             ),
             const SizedBox(height: 8),
             Expanded(
-              child: _cargando
-                  ? const Center(child: CircularProgressIndicator())
-                  : _error != null
-                      ? _EstadoError(mensaje: _error!, onReintentar: _cargarDatos)
-                      : _puntos.isEmpty
-                          ? const _EstadoVacio()
-                          : Padding(
-                              padding: const EdgeInsets.fromLTRB(12, 8, 20, 24),
-                              child: _GraficaLinea(
-                                puntos: _puntos,
-                                color: infoVar.color,
-                                unidad: infoVar.unidad,
-                                rango: _rangoSeleccionado,
-                                variable: _variableSeleccionada,
+              child: RefreshIndicator(
+                onRefresh: _cargarDatos,
+                color: const Color(0xff2563EB),
+                child: _cargando
+                    ? const Center(child: CircularProgressIndicator())
+                    : _error != null
+                        ? ListView(
+                            children: [
+                              SizedBox(height: MediaQuery.of(context).size.height * 0.3),
+                              _EstadoError(mensaje: _error!, onReintentar: _cargarDatos),
+                            ],
+                          )
+                        : _puntos.isEmpty
+                            ? ListView(
+                                children: [
+                                  SizedBox(height: MediaQuery.of(context).size.height * 0.3),
+                                  const _EstadoVacio(),
+                                ],
+                              )
+                            : Padding(
+                                padding: const EdgeInsets.fromLTRB(12, 8, 20, 24),
+                                child: _GraficaLinea(
+                                  puntos: _puntos,
+                                  color: infoVar.color,
+                                  unidad: infoVar.unidad,
+                                  rango: _rangoSeleccionado,
+                                  variable: _variableSeleccionada,
+                                ),
                               ),
-                            ),
+              ),
             ),
           ],
         ),
@@ -450,20 +461,13 @@ class _GraficaLinea extends StatelessWidget {
     var minY = puntos.map((p) => p.valor).reduce((a, b) => a < b ? a : b);
     var maxY = puntos.map((p) => p.valor).reduce((a, b) => a > b ? a : b);
 
-    // Si hay umbral definido, se asegura que el eje lo incluya siempre,
-    // aunque los datos del periodo no lleguen tan alto.
     if (umbral != null && umbral.$2 > maxY) {
       maxY = umbral.$2;
     }
 
     final rangoDatos = (maxY - minY).abs();
-    // El piso del margen ahora es proporcional al valor máximo del eje
-    // (5%), no un numero fijo — antes un minimo de 0.5 aplastaba variables
-    // de escala pequeña como NO2 (valores tipicos ~0.01-0.03 ppm).
     final pisoMargen = (maxY.abs() * 0.05).clamp(0.001, double.infinity);
     final margen = (rangoDatos * 0.15).clamp(pisoMargen, double.infinity);
-
-    // Evita saturar el eje X de etiquetas cuando hay muchos puntos
     final pasoEtiquetas = (puntos.length / 6).ceil().clamp(1, puntos.length);
 
     return Container(
@@ -484,7 +488,7 @@ class _GraficaLinea extends StatelessWidget {
               : ExtraLinesData(
                   horizontalLines: [
                     HorizontalLine(
-                      y: umbral.$1, // advertencia
+                      y: umbral.$1,
                       color: Colors.orange,
                       strokeWidth: 1.5,
                       dashArray: [6, 4],
@@ -496,7 +500,7 @@ class _GraficaLinea extends StatelessWidget {
                       ),
                     ),
                     HorizontalLine(
-                      y: umbral.$2, // alarma
+                      y: umbral.$2,
                       color: Colors.redAccent,
                       strokeWidth: 1.5,
                       dashArray: [6, 4],
@@ -512,7 +516,7 @@ class _GraficaLinea extends StatelessWidget {
           gridData: FlGridData(
             show: true,
             drawVerticalLine: false,
-            horizontalInterval: ((maxY - minY).abs() / 4).clamp(pisoMargen / 2, double.infinity),
+            horizontalInterval: ((maxY - minY) > 0 ? (maxY - minY) / 4 : 0.01),
           ),
           borderData: FlBorderData(show: false),
           titlesData: FlTitlesData(
@@ -521,10 +525,10 @@ class _GraficaLinea extends StatelessWidget {
             leftTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
-                reservedSize: 40,
+                reservedSize: 45,
                 getTitlesWidget: (value, meta) => Text(
-                  value.toStringAsFixed(1),
-                  style: const TextStyle(fontSize: 10, color: Colors.grey),
+                  value.toStringAsFixed(3),
+                  style: const TextStyle(fontSize: 9, color: Colors.grey),
                 ),
               ),
             ),
@@ -554,7 +558,7 @@ class _GraficaLinea extends StatelessWidget {
                 final idx = s.x.toInt();
                 final t = puntos[idx].tiempo;
                 return LineTooltipItem(
-                  '${s.y.toStringAsFixed(2)} $unidad\n${DateFormat('d MMM HH:mm', 'es').format(t)}',
+                  '${s.y.toStringAsFixed(3)} $unidad\n${DateFormat('d MMM HH:mm', 'es').format(t)}',
                   const TextStyle(color: Colors.white, fontSize: 12),
                 );
               }).toList(),
@@ -614,7 +618,7 @@ class _EstadoError extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [

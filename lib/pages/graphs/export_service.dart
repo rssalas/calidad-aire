@@ -12,23 +12,29 @@ import 'package:intl/intl.dart';
 FirebaseFirestore get _db =>
     FirebaseFirestore.instanceFor(app: Firebase.app(), databaseId: 'default');
 
-/// Consulta la coleccion promedios_10min en su resolucion NATIVA (sin
+/// Consulta la colección promedios_10min en su resolución NATIVA (sin
 /// agrupar), para el rango [inicio, fin]. Se usa exclusivamente para
-/// reportes descargables, nunca para las graficas en pantalla.
+/// reportes descargables, nunca para las gráficas en pantalla.
 Future<List<Map<String, dynamic>>> obtenerDatosParaReporte(
   DateTime inicio,
   DateTime fin,
 ) async {
+  // SOLUCIÓN: Ambas condiciones deben ir dentro del mismo .where() 
+  // para que Firestore aplique el rango completo correctamente.
   final snapshot = await _db
       .collection('promedios_10min')
-      .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(inicio))
-      .where('timestamp', isLessThanOrEqualTo: Timestamp.fromDate(fin))
+      .where(
+        'timestamp',
+        isGreaterThanOrEqualTo: Timestamp.fromDate(inicio),
+        isLessThanOrEqualTo: Timestamp.fromDate(fin),
+      )
       .orderBy('timestamp')
       .get();
 
   return snapshot.docs.map((d) => d.data()).toList();
 }
 
+// SOLUCIÓN: Se limpió la corrupción de caracteres (Â°) por símbolos reales
 const List<String> _encabezados = [
   'N°',
   'Fecha y hora',
@@ -44,8 +50,8 @@ const List<String> _encabezados = [
 
 List<String> _filaDesdeDocumento(int numero, Map<String, dynamic> d) {
   final ts = d['timestamp'] as Timestamp?;
-  final fecha = ts != null ? DateFormat('yyyy-MM-dd HH:mm').format(ts.toDate()) : '—';
-  String val(dynamic v) => v == null ? '—' : v.toString();
+  final fecha = ts != null ? DateFormat('yyyy-MM-dd HH:mm').format(ts.toDate()) : '-';
+  String val(dynamic v) => v == null ? '-' : v.toString();
 
   return [
     numero.toString(),
@@ -102,8 +108,7 @@ Future<void> exportarPDF({
 
   final doc = pw.Document();
 
-  // Estadisticas resumen (max, min, promedio) por variable, para la
-  // portada del reporte - independiente de la tabla detallada.
+  // Estadísticas resumen (max, min, promedio) por variable
   final resumen = _calcularResumen(datos);
 
   doc.addPage(
@@ -123,7 +128,7 @@ Future<void> exportarPDF({
           ),
           pw.SizedBox(height: 4),
           pw.Text(
-            'Periodo: ${DateFormat('d MMM y HH:mm').format(inicio)} — ${DateFormat('d MMM y HH:mm').format(fin)}',
+            'Periodo: ${DateFormat('d MMM y HH:mm').format(inicio)} - ${DateFormat('d MMM y HH:mm').format(fin)}',
             style: const pw.TextStyle(fontSize: 10),
           ),
           pw.Text(
@@ -221,7 +226,7 @@ Map<String, _ResumenVariable> _calcularResumen(List<Map<String, dynamic>> datos)
 
 pw.Widget _tablaResumen(Map<String, _ResumenVariable> resumen) {
   final filas = resumen.values.map((r) {
-    String f(double? v) => v == null ? '—' : v.toStringAsFixed(2);
+    String f(double? v) => v == null ? '-' : v.toStringAsFixed(2);
     return [r.nombre, f(r.min), f(r.promedio), f(r.max), r.unidad];
   }).toList();
 
